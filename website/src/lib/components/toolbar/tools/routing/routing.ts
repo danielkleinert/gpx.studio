@@ -109,7 +109,8 @@ async function getGraphHopperRoute(
     graphHopperProfile: string,
     privateRoads: boolean
 ): Promise<TrackPoint[]> {
-    let response = await fetch('https://graphhopper.gpx.studio/route', {
+    // Proxied to https://graphhopper.gpx.studio to avoid CORS, see the redirect in netlify.toml.
+    let response = await fetch('/api/graphhopper/route', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

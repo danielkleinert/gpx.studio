@@ -11,8 +11,22 @@
     # bundle on purpose, so exclude it from Netlify's secrets scanner.
     SECRETS_SCAN_OMIT_KEYS = "PUBLIC_MAPTILER_KEY"
 
+# `netlify dev` serves the SvelteKit dev server through the proxy, so the redirect
+# below applies locally too. The dev server must be started from the website folder.
+[dev]
+    command = "npm run dev --prefix website"
+    targetPort = 5173
+
 [[headers]]
     for = "/_app/immutable/*"
 
     [headers.values]
         cache-control = "public, max-age=31536000, immutable"
+
+# The GraphHopper instance rejects cross-origin requests from this domain, so the
+# routing calls are proxied through the site itself.
+[[redirects]]
+    from = "/api/graphhopper/*"
+    to = "https://graphhopper.gpx.studio/:splat"
+    status = 200
+    force = true
