@@ -1,4 +1,11 @@
-import { ramerDouglasPeucker, type GPXFile, type TrackSegment } from 'gpx';
+import {
+    ramerDouglasPeucker,
+    type Coordinates,
+    type GPXFile,
+    type TrackPoint,
+    type TrackSegment,
+} from 'gpx';
+import { getClosestLinePoint } from '$lib/utils';
 
 const earthRadius = 6371008.8;
 
@@ -48,4 +55,22 @@ function computeAnchorPoints(segment: TrackSegment) {
         point._data.zoom = getZoomLevelForDistance(point.getLatitude(), anchor.distance);
     });
     segment._data.anchors = true;
+}
+
+// Turn the points of a freshly computed route matching the requested points into permanent anchors.
+// The first and last routed points are the route endpoints, the intermediate requested points are
+// matched to the closest point of the route.
+export function markAnchors(
+    routedPoints: TrackPoint[],
+    requestedPoints: (TrackPoint | Coordinates)[]
+) {
+    let anchors = [routedPoints[0], routedPoints[routedPoints.length - 1]];
+    let intermediatePoints = routedPoints.slice(1, -1);
+    for (let i = 1; i < requestedPoints.length - 1; i++) {
+        anchors.push(getClosestLinePoint(intermediatePoints, requestedPoints[i]));
+    }
+    anchors.forEach((point) => {
+        point._data.anchor = true;
+        point._data.zoom = MIN_ANCHOR_ZOOM;
+    });
 }

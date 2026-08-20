@@ -20,6 +20,7 @@
     import { getURLForGoogleDriveFile } from '$lib/components/embedding/embedding';
     import { db } from '$lib/db';
     import { fileStateCollection } from '$lib/logic/file-state';
+    import { createRoutesFromURL } from '$lib/logic/url-routes';
 
     const {
         treeFileView,
@@ -38,6 +39,8 @@
     onMount(async () => {
         settings.connectToDatabase(db);
         fileStateCollection.connectToDatabase(db).then(() => {
+            createRoutesFromURL(page.url.searchParams);
+
             let files: string[] = JSON.parse(page.url.searchParams.get('files') || '[]');
             let ids: string[] = JSON.parse(page.url.searchParams.get('ids') || '[]');
             let urls: string[] = files.concat(ids.map(getURLForGoogleDriveFile));

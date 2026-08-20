@@ -26,7 +26,7 @@ import { fileActionManager } from '$lib/logic/file-action-manager';
 import { i18n } from '$lib/i18n.svelte';
 import { map } from '$lib/components/map/map';
 import { ANCHOR_LAYER_KEY } from '$lib/components/map/style';
-import { MAX_ANCHOR_ZOOM, MIN_ANCHOR_ZOOM } from './simplify';
+import { markAnchors, MAX_ANCHOR_ZOOM, MIN_ANCHOR_ZOOM } from './simplify';
 
 const { streetViewSource } = settings;
 export const canChangeStart = writable(false);
@@ -665,7 +665,7 @@ export class RoutingControls {
         if (anchors.length <= 1) {
             // Only one anchor, update the point in the segment
             targetTrackPoints[0]._data.anchor = true;
-            targetTrackPoints[0]._data.zoom = 0;
+            targetTrackPoints[0]._data.zoom = MIN_ANCHOR_ZOOM;
             let selected = selection.getOrderedSelection();
             if (
                 selected.length === 0 ||
@@ -726,19 +726,7 @@ export class RoutingControls {
             response.push(targetTrackPoints[anchors.length - 1].clone()); // Keep the current last anchor
         }
 
-        let anchorTrackPoints = [response[0], response[response.length - 1]];
-        for (let i = 1; i < anchors.length - 1; i++) {
-            // Find the closest point to the intermediate anchor, which will become an anchor
-            anchorTrackPoints.push(
-                getClosestLinePoint(response.slice(1, -1), targetTrackPoints[i])
-            );
-        }
-
-        anchorTrackPoints.forEach((trkpt) => {
-            // Turn them into permanent anchors
-            trkpt._data.anchor = true;
-            trkpt._data.zoom = 0;
-        });
+        markAnchors(response, targetTrackPoints);
 
         const stats = fileWithStats.statistics.getStatisticsFor(
             new ListTrackSegmentItem(

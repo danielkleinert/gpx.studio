@@ -45,10 +45,9 @@ export function getFileIds(n: number) {
     return ids;
 }
 
-export function newGPXFile() {
+// Create new files with consecutive names, different from the ones already open
+export function newGPXFiles(n: number) {
     const newFileName = i18n._('menu.new_file');
-
-    let file = new GPXFile();
 
     let maxNewFileNumber = 0;
     fileStateCollection.forEach((fileId, file) => {
@@ -60,9 +59,17 @@ export function newGPXFile() {
         }
     });
 
-    file.metadata.name = `${newFileName} ${maxNewFileNumber + 1}`;
+    let files = [];
+    for (let index = 0; index < n; index++) {
+        let file = new GPXFile();
+        file.metadata.name = `${newFileName} ${maxNewFileNumber + 1 + index}`;
+        files.push(file);
+    }
+    return files;
+}
 
-    return file;
+export function newGPXFile() {
+    return newGPXFiles(1)[0];
 }
 
 export function createFile() {
@@ -96,9 +103,19 @@ export async function loadFiles(list: FileList | File[]) {
         }
     }
 
+    addAndSelectFiles(files);
+}
+
+// Add files to the app, select the first one and fit the map to all of them
+export function addAndSelectFiles(files: GPXFile[]) {
+    if (files.length === 0) {
+        return [];
+    }
+
     let ids = fileActions.addMultiple(files);
     selection.selectFileWhenLoaded(ids[0]);
     boundsManager.fitBoundsOnLoad(ids);
+    return ids;
 }
 
 export async function loadFile(file: File): Promise<GPXFile | null> {

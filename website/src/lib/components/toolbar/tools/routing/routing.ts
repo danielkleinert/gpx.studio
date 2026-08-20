@@ -22,14 +22,20 @@ export const routingProfiles: { [key: string]: RoutingProfile } = {
     railway: { engine: 'brouter', profile: 'rail' },
 };
 
+export function routeWithProfile(
+    points: Coordinates[],
+    profile: RoutingProfile
+): Promise<TrackPoint[]> {
+    if (profile.engine === 'graphhopper') {
+        return getGraphHopperRoute(points, profile.profile, get(privateRoads));
+    } else {
+        return getBRouterRoute(points, profile.profile);
+    }
+}
+
 export function route(points: Coordinates[]): Promise<TrackPoint[]> {
     if (get(routing)) {
-        const profile = routingProfiles[get(routingProfile)];
-        if (profile.engine === 'graphhopper') {
-            return getGraphHopperRoute(points, profile.profile, get(privateRoads));
-        } else {
-            return getBRouterRoute(points, profile.profile);
-        }
+        return routeWithProfile(points, routingProfiles[get(routingProfile)]);
     } else {
         return getIntermediatePoints(points);
     }
