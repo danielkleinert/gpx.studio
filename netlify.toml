@@ -1,0 +1,18 @@
+[build]
+    # The repo is a monorepo: the `gpx` library must be built before the website.
+    command = "npm install --prefix gpx && npm run build --prefix gpx && npm install --prefix website && npm run build --prefix website"
+    publish = "website/build"
+
+[build.environment]
+    NODE_VERSION = "24"
+    # adapter-static is served from the domain root, same as the GitHub Pages build.
+    BASE_PATH = ""
+    # PUBLIC_MAPTILER_KEY is a public client-side key and is inlined into the
+    # bundle on purpose, so exclude it from Netlify's secrets scanner.
+    SECRETS_SCAN_OMIT_KEYS = "PUBLIC_MAPTILER_KEY"
+
+[[headers]]
+    for = "/_app/immutable/*"
+
+    [headers.values]
+        cache-control = "public, max-age=31536000, immutable"
